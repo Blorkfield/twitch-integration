@@ -1,0 +1,9 @@
+export { TwitchChat } from './client.js'
+export type {
+  TwitchChatOptions,
+  NormalizedMessage,
+  ChatUser,
+  Badge,
+  MessageFragment,
+  ResolvedEmote,
+} from './types.js'

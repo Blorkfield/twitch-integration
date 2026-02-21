@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twitch-integration testbed</title>
+  <link rel="stylesheet" href="@blorkfield/blork-tabs/styles.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #0e0e14;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    .page-title {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px;
+      color: #555;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Config panel form styles */
+    .config-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 4px 2px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field label {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .field input {
+      background: #0e0e14;
+      border: 1px solid #2a2a3a;
+      border-radius: 4px;
+      color: #e0e0e0;
+      font-size: 13px;
+      padding: 6px 8px;
+      outline: none;
+      transition: border-color 0.15s;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+    }
+
+    .field input:focus {
+      border-color: #4a90d9;
+    }
+
+    .field input[type="password"] {
+      letter-spacing: 0.1em;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 7px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      transition: opacity 0.15s, background 0.15s;
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .btn-connect {
+      background: #4a90d9;
+      color: #fff;
+    }
+
+    .btn-connect:hover:not(:disabled) {
+      background: #5aa0e9;
+    }
+
+    .btn-disconnect {
+      background: #2a2a3a;
+      color: #e0e0e0;
+    }
+
+    .btn-disconnect:hover:not(:disabled) {
+      background: #c0392b;
+      color: #fff;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #444;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+
+    .status-dot.connected    { background: #27ae60; box-shadow: 0 0 6px #27ae60; }
+    .status-dot.connecting   { background: #f39c12; box-shadow: 0 0 6px #f39c12; }
+    .status-dot.disconnected { background: #444; box-shadow: none; }
+    .status-dot.error        { background: #c0392b; box-shadow: 0 0 6px #c0392b; }
+
+    .status-text { color: #888; }
+  </style>
+</head>
+<body>
+  <div class="page-title">twitch-integration testbed</div>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>
