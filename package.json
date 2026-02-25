@@ -22,6 +22,7 @@
     "dist"
   ],
   "scripts": {
+    "dev": "pnpm -C testbed dev",
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "changeset": "changeset",
