@@ -1,6 +1,6 @@
 {
   "name": "@blorkfield/twitch-integration",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Twitch EventSub WebSocket client with normalized chat message stream",
   "repository": {
     "type": "git",
