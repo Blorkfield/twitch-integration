@@ -31,7 +31,6 @@
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "changeset": "changeset",
-    "publish": "pnpm build && pnpm publish --access public",
     "prepare": "[ -d testbed ] && pnpm -C testbed install || true"
   },
   "dependencies": {
