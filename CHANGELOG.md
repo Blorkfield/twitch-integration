@@ -1,5 +1,11 @@
 # @blorkfield/twitch-integration
 
+## 0.2.1
+
+### Patch Changes
+
+- 3db212b: fix: npm publish
+
 ## 0.2.0
 
 ### Minor Changes
