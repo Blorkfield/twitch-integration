@@ -1,5 +1,11 @@
 # @blorkfield/twitch-integration
 
+## 0.2.2
+
+### Patch Changes
+
+- 7279ef5: fix: npm publish
+
 ## 0.2.1
 
 ### Patch Changes
