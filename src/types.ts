@@ -56,6 +56,11 @@ export interface NormalizedMessage {
   channelPointsRewardId?: string
 }
 
+export interface UserProfile {
+  id: string
+  profileImageUrl: string
+}
+
 // Internal: raw Twitch EventSub payload types
 
 export interface TwitchEventSubMessage {

@@ -6,4 +6,5 @@ export type {
   Badge,
   MessageFragment,
   ResolvedEmote,
+  UserProfile,
 } from './types.js'
