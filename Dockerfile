@@ -4,16 +4,23 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 WORKDIR /app
 
-# Copy workspace manifests first for better layer caching
-COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
-COPY testbed/package.json ./testbed/
+# Copy root manifests first for better layer caching
+COPY package.json pnpm-lock.yaml* ./
 
-# Install all workspace dependencies (root + testbed)
+# Install root dependencies
 RUN pnpm install --frozen-lockfile || pnpm install
 
 # Copy source
 COPY tsconfig.json tsup.config.ts ./
 COPY src ./src
+
+# Install testbed dependencies separately
+COPY testbed/package.json ./testbed/
+WORKDIR /app/testbed
+RUN pnpm install --frozen-lockfile || pnpm install
+
+WORKDIR /app
+
 COPY testbed ./testbed
 
 ENV DOCKER=1
