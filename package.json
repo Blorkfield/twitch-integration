@@ -2,6 +2,10 @@
   "name": "@blorkfield/twitch-integration",
   "version": "0.2.0",
   "description": "Twitch EventSub WebSocket client with normalized chat message stream",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Blorkfield/twitch-integration.git"
+  },
   "packageManager": "pnpm@10.27.0",
   "type": "module",
   "main": "./dist/index.cjs",
