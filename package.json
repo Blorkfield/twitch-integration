@@ -1,6 +1,6 @@
 {
   "name": "@blorkfield/twitch-integration",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Twitch EventSub WebSocket client with normalized chat message stream",
   "packageManager": "pnpm@10.27.0",
   "type": "module",
