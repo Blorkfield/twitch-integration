@@ -12,4 +12,4 @@ jobs:
     secrets: inherit
     with:
       package_name: '@blorkfield/twitch-integration'
-      watched_paths: '^(src/|package\.json|tsconfig\.json|tsup\.config\.ts)'
+      watched_paths: '^(src/|testbed/|package\.json|tsconfig\.json|tsup\.config\.ts|Dockerfile|docker-compose\.yml)'

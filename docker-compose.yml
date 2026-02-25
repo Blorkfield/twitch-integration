@@ -1,0 +1,8 @@
+services:
+  twitch-integration-testbed:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5175:5175"
+    restart: unless-stopped
