@@ -1,0 +1,15 @@
+name: Auto PR
+
+on:
+  push:
+    branches-ignore:
+      - main
+      - 'release/**'
+
+jobs:
+  auto-pr:
+    uses: Blorkfield/blork-infra/.github/workflows/auto-pr.yml@main
+    secrets: inherit
+    with:
+      package_name: '@blorkfield/twitch-integration'
+      watched_paths: '^(src/|testbed/|package\.json|tsconfig\.json|tsup\.config\.ts|Dockerfile|docker-compose\.yml)'

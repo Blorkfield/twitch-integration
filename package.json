@@ -2,6 +2,7 @@
   "name": "@blorkfield/twitch-integration",
   "version": "0.1.0",
   "description": "Twitch EventSub WebSocket client with normalized chat message stream",
+  "packageManager": "pnpm@10.27.0",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -22,6 +23,7 @@
     "dist"
   ],
   "scripts": {
+    "dev": "pnpm build && pnpm -C testbed dev",
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "changeset": "changeset",

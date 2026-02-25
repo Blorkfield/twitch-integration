@@ -138,6 +138,58 @@
     .status-dot.error        { background: #c0392b; box-shadow: 0 0 6px #c0392b; }
 
     .status-text { color: #888; }
+
+    /* User lookup panel */
+    .lookup-form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 4px 2px;
+    }
+
+    .lookup-result {
+      min-height: 24px;
+    }
+
+    .lookup-status {
+      margin: 0;
+      font-size: 12px;
+      color: #666;
+    }
+
+    .lookup-error {
+      margin: 0;
+      font-size: 12px;
+      color: #c0392b;
+    }
+
+    .lookup-user {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .lookup-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 2px solid #2a2a3a;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .lookup-uid {
+      font-size: 12px;
+      color: #888;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      word-break: break-all;
+    }
+
+    /* Override blork-tabs content max-height for the config panel */
+    .blork-tabs-panel:has(#config-form) .blork-tabs-content {
+      max-height: none;
+    }
   </style>
 </head>
 <body>

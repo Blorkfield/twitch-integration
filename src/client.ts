@@ -9,6 +9,7 @@ import type {
   TwitchRevocationPayload,
 } from './types.js'
 import { EmoteCache } from './emotes/index.js'
+import { UserCache } from './users/index.js'
 import { normalizeMessage } from './normalizer.js'
 
 const EVENTSUB_URL = 'wss://eventsub.wss.twitch.tv/ws'
@@ -46,6 +47,7 @@ interface TwitchChatEvents {
 export class TwitchChat extends EventEmitter<TwitchChatEvents> {
   private options: TwitchChatOptions
   private emoteCache: EmoteCache
+  private userCache: UserCache
 
   private ws: WSLike | null = null
   private sessionId: string | null = null
@@ -61,6 +63,10 @@ export class TwitchChat extends EventEmitter<TwitchChatEvents> {
     super()
     this.options = options
     this.emoteCache = new EmoteCache(options.channelId)
+    this.userCache = new UserCache(() => ({
+      accessToken: this.options.accessToken,
+      clientId: this.options.clientId,
+    }))
   }
 
   // ---------------------------------------------------------------------------
@@ -86,6 +92,19 @@ export class TwitchChat extends EventEmitter<TwitchChatEvents> {
 
   async refreshEmotes(): Promise<void> {
     await this.emoteCache.load()
+  }
+
+  async getProfilePictureUrl(userId: string): Promise<string | null> {
+    return this.userCache.getProfilePictureUrl(userId)
+  }
+
+  async getProfilePictureUrls(userIds: string[]): Promise<Map<string, string | null>> {
+    const found = await this.userCache.getProfilePictureUrls(userIds)
+    const result = new Map<string, string | null>()
+    for (const id of userIds) {
+      result.set(id, found.get(id) ?? null)
+    }
+    return result
   }
 
   // ---------------------------------------------------------------------------

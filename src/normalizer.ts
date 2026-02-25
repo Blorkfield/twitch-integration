@@ -107,11 +107,11 @@ export function normalizeMessage(
     timestamp: event.timestamp,
   }
 
-  if (event.cheer !== undefined) {
+  if (event.cheer != null) {
     msg.cheer = { bits: event.cheer.bits }
   }
 
-  if (event.reply !== undefined) {
+  if (event.reply != null) {
     msg.reply = {
       parentMessageId: event.reply.parent_message_id,
       parentUserLogin: event.reply.parent_user_login,
@@ -119,7 +119,7 @@ export function normalizeMessage(
     }
   }
 
-  if (event.channel_points_custom_reward_id !== undefined) {
+  if (event.channel_points_custom_reward_id != null) {
     msg.channelPointsRewardId = event.channel_points_custom_reward_id
   }
 

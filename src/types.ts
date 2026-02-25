@@ -56,6 +56,11 @@ export interface NormalizedMessage {
   channelPointsRewardId?: string
 }
 
+export interface UserProfile {
+  id: string
+  profileImageUrl: string
+}
+
 // Internal: raw Twitch EventSub payload types
 
 export interface TwitchEventSubMessage {
@@ -128,15 +133,15 @@ export interface TwitchChatMessageEvent {
   color: string
   badges: Array<{ set_id: string; id: string; info: string }>
   message_type: string
-  cheer?: { bits: number }
+  cheer?: { bits: number } | null
   reply?: {
     parent_message_id: string
     parent_user_id: string
     parent_user_login: string
     parent_user_display_name: string
     parent_message_body: string
-  }
-  channel_points_custom_reward_id?: string
+  } | null
+  channel_points_custom_reward_id?: string | null
   source_broadcaster_user_id?: string | null
   timestamp: string
 }

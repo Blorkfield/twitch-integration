@@ -39,7 +39,7 @@ const chatLog = manager.addDebugPanel({
   showTimestamps: true,
   hoverDelay: 1500,
   startCollapsed: false,
-  initialPosition: { x: window.innerWidth - 436, y: 16 },
+  initialPosition: { x: window.innerWidth - 724, y: 16 },
 })
 
 // ---------------------------------------------------------------------------
@@ -85,11 +85,42 @@ const configPanel = manager.addPanel({
   width: 320,
   content: configContent,
   startCollapsed: false,
-  initialPosition: { x: window.innerWidth - 436 - 320 - 8, y: 16 },
+  initialPosition: { x: window.innerWidth - 1052, y: 16 },
+})
+
+// ---------------------------------------------------------------------------
+// User lookup panel
+// ---------------------------------------------------------------------------
+
+const lookupContent = `
+  <div class="lookup-form">
+    <div class="field">
+      <label for="lookup-id">User ID</label>
+      <input
+        id="lookup-id"
+        name="lookup-id"
+        type="text"
+        placeholder="numeric user ID"
+        spellcheck="false"
+        autocomplete="off"
+      />
+    </div>
+    <button class="btn btn-connect" type="button" id="btn-lookup">Lookup</button>
+    <div class="lookup-result" id="lookup-result"></div>
+  </div>
+`
+
+const lookupPanel = manager.addPanel({
+  id: 'lookup',
+  title: 'User Lookup',
+  width: 280,
+  content: lookupContent,
+  startCollapsed: false,
+  initialPosition: { x: window.innerWidth - 296, y: 16 },
 })
 
 // Snap them together
-manager.createSnapChain(['config', 'chat'])
+manager.createSnapChain(['config', 'chat', 'lookup'])
 
 // ---------------------------------------------------------------------------
 // Wire up the form after the panel is in the DOM
@@ -169,6 +200,7 @@ async function doConnect(values: Record<string, string>) {
   chat.on('message', (msg: NormalizedMessage) => {
     const emoteNames = msg.emotes.map(e => `${e.name} (${e.source})`).join(', ')
     chatLog.log(msg.user.displayName, {
+      id: msg.user.id,
       text: msg.text,
       ...(emoteNames ? { emotes: emoteNames } : {}),
       ...(msg.cheer ? { bits: msg.cheer.bits } : {}),
@@ -227,5 +259,51 @@ btnDisconnect.addEventListener('click', () => {
   chatLog.info('connection', { status: 'disconnected by user' })
 })
 
-// Unused but satisfies TS - configPanel is used for DOM side-effects
+// ---------------------------------------------------------------------------
+// User lookup wiring
+// ---------------------------------------------------------------------------
+
+const btnLookup = document.getElementById('btn-lookup') as HTMLButtonElement
+const lookupIdInput = document.getElementById('lookup-id') as HTMLInputElement
+const lookupResult = document.getElementById('lookup-result') as HTMLDivElement
+
+btnLookup.addEventListener('click', () => {
+  void doLookup()
+})
+
+lookupIdInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') void doLookup()
+})
+
+async function doLookup() {
+  const userId = lookupIdInput.value.trim()
+  if (!userId) return
+
+  if (!chat) {
+    lookupResult.innerHTML = `<p class="lookup-error">Not connected.</p>`
+    return
+  }
+
+  lookupResult.innerHTML = `<p class="lookup-status">Loading…</p>`
+
+  try {
+    const url = await chat.getProfilePictureUrl(userId)
+    if (url === null) {
+      lookupResult.innerHTML = `<p class="lookup-error">User not found.</p>`
+    } else {
+      lookupResult.innerHTML = `
+        <div class="lookup-user">
+          <img class="lookup-avatar" src="${url}" alt="profile picture" />
+          <span class="lookup-uid">${userId}</span>
+        </div>
+      `
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    lookupResult.innerHTML = `<p class="lookup-error">${msg}</p>`
+  }
+}
+
+// Unused but satisfies TS - configPanel/lookupPanel are used for DOM side-effects
 void configPanel
+void lookupPanel

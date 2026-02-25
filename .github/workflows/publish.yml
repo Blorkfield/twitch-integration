@@ -1,0 +1,26 @@
+name: Publish
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      force_publish:
+        description: 'Force publish regardless of release detection'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write
+  packages: write
+
+jobs:
+  publish:
+    uses: Blorkfield/blork-infra/.github/workflows/publish.yml@main
+    secrets: inherit
+    with:
+      publish_npm: true
+      publish_docker: true
+      docker_image_name: 'twitch-integration'
+      force_publish: ${{ inputs.force_publish || false }}
