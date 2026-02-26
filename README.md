@@ -169,6 +169,62 @@ Third-party emote name collisions are resolved in priority order:
 
 ---
 
+## User lookup
+
+`TwitchChat` exposes a cached user lookup backed by the Helix API. Requires an active connection (uses the same credentials).
+
+```typescript
+// Full user info
+const user: UserInfo | null = await chat.getUser('123456789')
+// { id, login, displayName, profileImageUrl, broadcasterType, description, createdAt }
+
+// Batch
+const users: Map<string, UserInfo | null> = await chat.getUsers(['123456789', '987654321'])
+
+// Profile picture shorthand (delegates to getUser, same cache)
+const url: string | null = await chat.getProfilePictureUrl('123456789')
+const urls: Map<string, string | null> = await chat.getProfilePictureUrls(['123456789', '987654321'])
+```
+
+`broadcasterType` is `'partner'`, `'affiliate'`, or `''`. Results are cached for 5 minutes — repeated calls for the same user ID don't hit the API again.
+
+---
+
+## Badges
+
+### Preloading
+
+```typescript
+await chat.preloadBadges()
+```
+
+Fetches global and channel badge sets from Helix in two parallel calls. Call this once before connecting, alongside `preloadEmotes()`.
+
+### Auto-resolution on messages
+
+If badges are preloaded, each `Badge` in `msg.user.badges` will have a `resolved` field populated automatically:
+
+```typescript
+chat.on('message', (msg) => {
+  for (const badge of msg.user.badges) {
+    console.log(badge.setId, badge.id)       // e.g. 'subscriber', '6'
+    console.log(badge.resolved?.title)        // e.g. 'Subscriber'
+    console.log(badge.resolved?.imageUrl2x)   // CDN image URL
+  }
+})
+```
+
+`badge.resolved` is `undefined` if badges weren't preloaded or the badge isn't in the fetched sets.
+
+### Manual resolution
+
+```typescript
+const badge: ResolvedBadge | undefined = chat.resolveBadge('subscriber', '6')
+// { title, imageUrl1x, imageUrl2x, imageUrl4x }
+```
+
+---
+
 ## Build
 
 ```bash

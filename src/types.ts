@@ -6,10 +6,28 @@ export interface TwitchChatOptions {
   onTokenRefresh?: (newToken: string) => void
 }
 
+export interface UserInfo {
+  id: string
+  login: string
+  displayName: string
+  profileImageUrl: string
+  broadcasterType: 'partner' | 'affiliate' | ''
+  description: string
+  createdAt: string
+}
+
+export interface ResolvedBadge {
+  title: string
+  imageUrl1x: string
+  imageUrl2x: string
+  imageUrl4x: string
+}
+
 export interface Badge {
   setId: string
   id: string
   info: string
+  resolved?: ResolvedBadge
 }
 
 export interface ChatUser {
@@ -54,11 +72,6 @@ export interface NormalizedMessage {
     parentUserDisplayName: string
   }
   channelPointsRewardId?: string
-}
-
-export interface UserProfile {
-  id: string
-  profileImageUrl: string
 }
 
 // Internal: raw Twitch EventSub payload types

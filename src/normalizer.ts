@@ -3,12 +3,14 @@ import type {
   NormalizedMessage,
   MessageFragment,
   ResolvedEmote,
+  ResolvedBadge,
 } from './types.js'
 import type { EmoteCache } from './emotes/index.js'
 
 export function normalizeMessage(
   event: TwitchChatMessageEvent,
   emoteCache: EmoteCache,
+  resolveBadge?: (setId: string, version: string) => ResolvedBadge | undefined,
 ): NormalizedMessage {
   const emotes: ResolvedEmote[] = []
   const fragments: MessageFragment[] = []
@@ -80,11 +82,15 @@ export function normalizeMessage(
     }
   }
 
-  const badges = event.badges.map(b => ({
-    setId: b.set_id,
-    id: b.id,
-    info: b.info,
-  }))
+  const badges = event.badges.map(b => {
+    const resolved = resolveBadge?.(b.set_id, b.id)
+    return {
+      setId: b.set_id,
+      id: b.id,
+      info: b.info,
+      ...(resolved !== undefined && { resolved }),
+    }
+  })
 
   const badgeSetIds = new Set(badges.map(b => b.setId))
 
