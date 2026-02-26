@@ -1,5 +1,11 @@
 # @blorkfield/twitch-integration
 
+## 0.4.0
+
+### Minor Changes
+
+- 3025cbe: feat: event monitoring
+
 ## 0.3.0
 
 ### Minor Changes
