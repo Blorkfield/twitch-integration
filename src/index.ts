@@ -4,7 +4,8 @@ export type {
   NormalizedMessage,
   ChatUser,
   Badge,
+  ResolvedBadge,
   MessageFragment,
   ResolvedEmote,
-  UserProfile,
+  UserInfo,
 } from './types.js'

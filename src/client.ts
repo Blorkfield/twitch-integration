@@ -7,9 +7,12 @@ import type {
   TwitchNotificationPayload,
   TwitchReconnectPayload,
   TwitchRevocationPayload,
+  UserInfo,
+  ResolvedBadge,
 } from './types.js'
 import { EmoteCache } from './emotes/index.js'
 import { UserCache } from './users/index.js'
+import { BadgeCache } from './badges/index.js'
 import { normalizeMessage } from './normalizer.js'
 
 const EVENTSUB_URL = 'wss://eventsub.wss.twitch.tv/ws'
@@ -48,6 +51,7 @@ export class TwitchChat extends EventEmitter<TwitchChatEvents> {
   private options: TwitchChatOptions
   private emoteCache: EmoteCache
   private userCache: UserCache
+  private badgeCache: BadgeCache
 
   private ws: WSLike | null = null
   private sessionId: string | null = null
@@ -64,6 +68,10 @@ export class TwitchChat extends EventEmitter<TwitchChatEvents> {
     this.options = options
     this.emoteCache = new EmoteCache(options.channelId)
     this.userCache = new UserCache(() => ({
+      accessToken: this.options.accessToken,
+      clientId: this.options.clientId,
+    }))
+    this.badgeCache = new BadgeCache(options.channelId, () => ({
       accessToken: this.options.accessToken,
       clientId: this.options.clientId,
     }))
@@ -94,6 +102,18 @@ export class TwitchChat extends EventEmitter<TwitchChatEvents> {
     await this.emoteCache.load()
   }
 
+  async preloadBadges(): Promise<void> {
+    await this.badgeCache.load()
+  }
+
+  async getUser(userId: string): Promise<UserInfo | null> {
+    return this.userCache.getUser(userId)
+  }
+
+  async getUsers(userIds: string[]): Promise<Map<string, UserInfo | null>> {
+    return this.userCache.getUsers(userIds)
+  }
+
   async getProfilePictureUrl(userId: string): Promise<string | null> {
     return this.userCache.getProfilePictureUrl(userId)
   }
@@ -105,6 +125,10 @@ export class TwitchChat extends EventEmitter<TwitchChatEvents> {
       result.set(id, found.get(id) ?? null)
     }
     return result
+  }
+
+  resolveBadge(setId: string, version: string): ResolvedBadge | undefined {
+    return this.badgeCache.resolve(setId, version)
   }
 
   // ---------------------------------------------------------------------------
@@ -219,7 +243,11 @@ export class TwitchChat extends EventEmitter<TwitchChatEvents> {
         const payload = msg.payload as TwitchNotificationPayload
         if (payload.subscription.type === 'channel.chat.message') {
           try {
-            const normalized = normalizeMessage(payload.event, this.emoteCache)
+            const normalized = normalizeMessage(
+            payload.event,
+            this.emoteCache,
+            (setId, version) => this.badgeCache.resolve(setId, version),
+          )
             this.emit('message', normalized)
           } catch (e) {
             this.emit('error', e instanceof Error ? e : new Error(String(e)))
