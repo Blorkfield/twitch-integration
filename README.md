@@ -21,13 +21,46 @@ You need four things before constructing `TwitchClient`:
 | Option | What it is | How to get it |
 |---|---|---|
 | `clientId` | Your Twitch app's client ID | [Twitch Developer Console](https://dev.twitch.tv/console/apps) → your app |
-| `accessToken` | A **user** access token for the bot/reading account | OAuth flow — **not** an app access token |
+| `accessToken` | A **user** access token for the account | OAuth flow — **not** an app access token |
 | `userId` | Twitch numeric user ID of the account that owns the token | Call `GET /helix/users` with the token |
 | `channelId` | Twitch numeric user ID of the broadcaster whose channel you're monitoring | Call `GET /helix/users?login=channelname` |
 
 The library does not handle OAuth. Obtain the token yourself and pass it in. Use `onTokenRefresh` to persist refreshed tokens.
 
 > **Why a user token?** Twitch's EventSub WebSocket transport does not accept app access tokens — this is a hard Twitch protocol requirement.
+
+---
+
+## Getting an access token
+
+No tools needed.
+
+### Step 1 — Add the redirect URL to your Twitch app
+
+**This must be done before the flow will work.** Go to [dev.twitch.tv/console/apps](https://dev.twitch.tv/console/apps), open your app, and add exactly this to the **OAuth Redirect URLs** list:
+
+```
+https://localhost
+```
+
+Save the app. If this value isn't there, Twitch will reject the authorization and you'll get a redirect_uri mismatch error.
+
+### Step 2 — Open the authorization URL
+
+Paste this into your browser after substituting your `clientId`:
+
+```
+https://id.twitch.tv/oauth2/authorize?client_id=YOUR_CLIENT_ID&redirect_uri=https://localhost&response_type=token&scope=user:read:chat+moderator:read:followers+channel:read:subscriptions+bits:read+channel:read:hype_train+channel:read:polls+channel:read:predictions+channel:read:redemptions+channel:read:ads+moderator:read:shoutouts
+```
+
+### Step 3 — Grab the token
+
+1. Authorize in the browser
+2. You get redirected to `https://localhost` (which fails to load — that's expected)
+3. Your token is in the URL bar: `https://localhost/#access_token=YOUR_TOKEN&...`
+4. Copy everything after `access_token=` up to the first `&`
+
+That's your `accessToken`. You only need scopes for the subscription flags you actually enable — remove any you don't need from the scope list before opening the URL.
 
 ---
 
