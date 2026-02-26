@@ -1,5 +1,11 @@
 # @blorkfield/twitch-integration
 
+## 0.3.0
+
+### Minor Changes
+
+- 5808207: feat: badges
+
 ## 0.2.2
 
 ### Patch Changes
