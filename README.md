@@ -135,8 +135,13 @@ const client = new TwitchClient({
     cheer: true,
     raid: true,
     streamStatus: true,
+    channelUpdate: true,
     hypeTrain: true,
+    polls: true,
+    predictions: true,
     channelPoints: true,
+    adBreak: true,
+    shoutouts: true,
   },
   onTokenRefresh: (token) => saveTokenSomewhere(token),
 })
@@ -144,38 +149,145 @@ const client = new TwitchClient({
 await client.preloadEmotes()   // optional: fetch BTTV + 7TV emote maps
 await client.connect()         // resolves once connected; subscriptions registered in parallel
 
+// --- Chat ---
 client.on('message', (msg) => {
   console.log(msg.user.displayName, msg.text)
+  console.log(msg.emotes)    // all resolved emotes in this message
+  console.log(msg.fragments) // text/emote/cheermote/mention breakdown
 })
 
-client.on('follow', (e) => {
-  console.log(`${e.user.displayName} followed! (${e.followedAt})`)
+// --- Follows ---
+client.on('follow', async (e) => {
+  console.log(`${e.user.displayName} followed!`)
+  // fetch profile picture on demand:
+  const pfp = await client.getProfilePictureUrl(e.user.id)
 })
 
+// --- Subscriptions ---
 client.on('subscribe', (e) => {
-  console.log(`${e.user.displayName} subscribed at tier ${e.tier}`)
+  console.log(`${e.user.displayName} subscribed at tier ${e.tier} (gift: ${e.isGift})`)
 })
 
-client.on('raid', (e) => {
-  console.log(`${e.fromBroadcaster.displayName} raided with ${e.viewerCount} viewers`)
+client.on('subscriptionMessage', (e) => {
+  // resub with a shared message
+  console.log(`${e.user.displayName} resubbed for ${e.cumulativeMonths} months: ${e.message.text}`)
 })
 
+client.on('subscriptionGift', (e) => {
+  const who = e.isAnonymous ? 'anonymous' : e.gifter!.displayName
+  console.log(`${who} gifted ${e.total} tier ${e.tier} subs`)
+})
+
+client.on('subscriptionEnd', (e) => {
+  console.log(`${e.user.displayName}'s sub ended`)
+})
+
+// --- Cheers ---
 client.on('cheer', (e) => {
   const who = e.isAnonymous ? 'anonymous' : e.user!.displayName
   console.log(`${who} cheered ${e.bits} bits: ${e.message}`)
 })
 
+// --- Raids ---
+client.on('raid', (e) => {
+  console.log(`${e.fromBroadcaster.displayName} raided with ${e.viewerCount} viewers`)
+})
+
+// --- Stream status ---
+client.on('streamOnline', (e) => {
+  console.log(`Stream went live at ${e.startedAt}`)
+})
+
+client.on('streamOffline', () => {
+  console.log('Stream ended')
+})
+
+// --- Channel update ---
+client.on('channelUpdate', (e) => {
+  console.log(`Title: ${e.title} | Category: ${e.categoryName}`)
+})
+
+// --- Hype Train ---
+client.on('hypeTrain.begin', (e) => {
+  console.log(`Hype Train started! Level ${e.level} — ${e.total} / ${e.goal}`)
+})
+
+client.on('hypeTrain.progress', (e) => {
+  console.log(`Hype Train level ${e.level} — ${e.progress} / ${e.goal}`)
+})
+
+client.on('hypeTrain.end', (e) => {
+  console.log(`Hype Train ended at level ${e.level} with ${e.total} total`)
+})
+
+// --- Polls ---
+client.on('poll.begin', (e) => {
+  console.log(`Poll: ${e.title}`, e.choices.map(c => c.title))
+})
+
+client.on('poll.progress', (e) => {
+  console.log(e.choices.map(c => `${c.title}: ${c.votes}`))
+})
+
+client.on('poll.end', (e) => {
+  const winner = [...e.choices].sort((a, b) => b.votes - a.votes)[0]
+  console.log(`Poll ended — winner: ${winner.title} with ${winner.votes} votes`)
+})
+
+// --- Predictions ---
+client.on('prediction.begin', (e) => {
+  console.log(`Prediction: ${e.title}`, e.outcomes.map(o => o.title))
+})
+
+client.on('prediction.progress', (e) => {
+  console.log(e.outcomes.map(o => `${o.title}: ${o.channelPoints} pts`))
+})
+
+client.on('prediction.lock', (e) => {
+  console.log(`Prediction locked: ${e.title}`)
+})
+
+client.on('prediction.end', (e) => {
+  const winner = e.outcomes.find(o => o.id === e.winningOutcomeId)
+  console.log(`Prediction resolved — winner: ${winner?.title}`)
+})
+
+// --- Channel Points ---
 client.on('channelPoints', (e) => {
-  console.log(`${e.user.displayName} redeemed "${e.reward.title}"`)
+  console.log(`${e.user.displayName} redeemed "${e.reward.title}"`, e.userInput ?? '')
+})
+
+// --- Ad Breaks ---
+client.on('adBreak', (e) => {
+  console.log(`Ad break started — ${e.durationSeconds}s (auto: ${e.isAutomatic})`)
+})
+
+// --- Shoutouts ---
+client.on('shoutout.create', (e) => {
+  console.log(`Gave shoutout to ${e.toBroadcaster.displayName}`)
+})
+
+client.on('shoutout.receive', (e) => {
+  console.log(`Received shoutout from ${e.fromBroadcaster.displayName}`)
+})
+
+// --- Connection events ---
+client.on('subscription_error', (type, err) => {
+  // an individual subscription failed — check your token has the required scope
+  console.error(`Failed to subscribe to ${type}:`, err.message)
 })
 
 client.on('auth_error', () => {
-  // token is bad or missing required scopes — re-authenticate
+  // token is invalid or expired — re-authenticate
 })
 
-client.on('error', (err) => {
-  // individual subscription failures, parse errors, etc.
-  console.error(err.message)
+client.on('revoked', (reason) => {
+  // Twitch revoked a subscription — do not auto-reconnect
+  console.error('Subscription revoked:', reason)
+})
+
+client.on('disconnected', (code, reason) => {
+  // library auto-reconnects on unexpected disconnects (non-1000 codes)
 })
 
 // Later:
