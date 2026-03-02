@@ -296,6 +296,102 @@ client.disconnect()
 
 ---
 
+## Simulation mode
+
+`TwitchSimulator` lets you drive the full `TwitchClient` pipeline without credentials — no Twitch account, no WebSocket connection, no Helix API calls. Useful for UI development, automated tests, demos, and CI.
+
+```bash
+pnpm add @blorkfield/twitch-integration
+```
+
+```typescript
+import { TwitchSimulator } from '@blorkfield/twitch-integration/simulation'
+
+const simulator = new TwitchSimulator()
+const client = simulator.client
+
+client.on('message', (msg) => console.log(msg.user.displayName, msg.text))
+client.on('follow', (e) => console.log(`${e.user.displayName} followed!`))
+client.on('raid', (e) => console.log(`Raid: ${e.viewerCount} viewers`))
+
+await simulator.connect()
+
+// Fire individual events
+simulator.fireChat('hello chat!')
+simulator.fireFollow()
+simulator.fireSubscribe()
+simulator.fireResub(12, 'Been here a year!')
+simulator.fireGiftSub(5)
+simulator.fireCheer(500)
+simulator.fireRaid(250)
+
+// Fire with a specific user
+import { USER_POOL } from '@blorkfield/twitch-integration/simulation'
+simulator.fireChat('hi!', USER_POOL[0])
+
+// Generic fire — useful when action type is dynamic
+simulator.fire('cheer', undefined, { bits: 100, message: 'Cheer100' })
+```
+
+### Scenario runner
+
+Fires events automatically over time:
+
+```typescript
+simulator.run({
+  duration: 30,        // seconds
+  rate: 3,             // events per second
+  actions: ['chat', 'follow', 'subscribe'],
+  users: 'random',     // or pass SimUser[] to restrict to specific users
+  onFire: (user, action) => console.log(action, user.displayName),
+  onComplete: () => console.log('done'),
+})
+
+// Stop early
+simulator.stop()
+console.log(simulator.running) // false
+```
+
+### Custom users
+
+```typescript
+import { TwitchSimulator } from '@blorkfield/twitch-integration/simulation'
+import type { SimUser } from '@blorkfield/twitch-integration/simulation'
+
+const users: SimUser[] = [
+  { id: '100', login: 'alice', displayName: 'Alice', color: '#FF4444' },
+  { id: '101', login: 'bob',   displayName: 'Bob',   color: '#4488FF' },
+]
+
+const simulator = new TwitchSimulator({ users })
+```
+
+### `SimulationOptions`
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `channelId` | `string` | `'mock_channel'` | Simulated broadcaster ID |
+| `channelLogin` | `string` | `'mock_streamer'` | Simulated broadcaster login |
+| `channelName` | `string` | `'MockStreamer'` | Simulated broadcaster display name |
+| `users` | `SimUser[]` | 8 built-in users | User pool for random selection |
+
+### `ScenarioOptions`
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `duration` | `number` | — | Run length in seconds |
+| `rate` | `number` | — | Events per second |
+| `actions` | `ActionType[]` | all actions | Which event types to fire |
+| `users` | `'random' \| SimUser[]` | `'random'` | User source for each tick |
+| `onFire` | `(user, action) => void` | — | Called each time an event fires |
+| `onComplete` | `() => void` | — | Called when the scenario ends |
+
+### Available `ActionType` values
+
+`'chat'` `'follow'` `'subscribe'` `'resub'` `'giftsub'` `'cheer'` `'raid'`
+
+---
+
 ## Event reference
 
 ### Connection events
@@ -754,7 +850,7 @@ Two browser testbeds are included.
 
 ### Simulation testbed (default)
 
-No credentials needed. Intercepts the WebSocket and Helix API in-browser and drives the full `TwitchClient` pipeline with fake events.
+No credentials needed. Uses the package's own `TwitchSimulator` API to drive the full `TwitchClient` pipeline with fake events.
 
 ```bash
 pnpm dev               # build + open simulation testbed on http://localhost:5176
@@ -776,11 +872,11 @@ pnpm dev connect       # build + open connect testbed on http://localhost:5175
 
 ### Docker
 
-The Docker image serves the simulation testbed on port 5176.
+The Docker image serves the connect testbed on port 5175.
 
 ```bash
 docker compose up --build
-# → http://localhost:5176
+# → http://localhost:5175
 ```
 
 ---

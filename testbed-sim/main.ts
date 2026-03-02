@@ -1,43 +1,11 @@
 import { TabManager } from '@blorkfield/blork-tabs'
 import '@blorkfield/blork-tabs/styles.css'
-import { installMockWebSocket, installMockFetch, MockEventSubWebSocket } from './mock/websocket.js'
-import { TwitchClient } from '@blorkfield/twitch-integration'
-import { USER_POOL } from './sim/users.js'
-import { Scheduler } from './sim/scheduler.js'
-import { ACTION_LABELS, executeAction } from './sim/actions.js'
-import type { ActionType } from './sim/actions.js'
-import type { SimUser } from './sim/users.js'
+import { TwitchSimulator, USER_POOL, ACTION_LABELS } from '@blorkfield/twitch-integration/simulation'
+import type { ActionType, SimUser } from '@blorkfield/twitch-integration/simulation'
 
-// ── Mocks first ────────────────────────────────────────────────────────────────
-installMockWebSocket()
-installMockFetch()
-
-// ── State ──────────────────────────────────────────────────────────────────────
-let mockWs: MockEventSubWebSocket | null = null
-const scheduler = new Scheduler()
-
-// ── TwitchClient ───────────────────────────────────────────────────────────────
-const client = new TwitchClient({
-  channelId: 'mock_channel',
-  userId: 'mock_user',
-  clientId: 'mock_client_id',
-  accessToken: 'mock_access_token',
-  subscriptions: {
-    chat: true,
-    follow: true,
-    subscribe: true,
-    cheer: true,
-    raid: true,
-    streamStatus: true,
-    channelUpdate: true,
-    hypeTrain: true,
-    polls: true,
-    predictions: true,
-    channelPoints: true,
-    adBreak: true,
-    shoutouts: true,
-  },
-})
+// ── Simulator ──────────────────────────────────────────────────────────────────
+const simulator = new TwitchSimulator()
+const client = simulator.client
 
 // ── Tab manager ────────────────────────────────────────────────────────────────
 const manager = new TabManager({
@@ -183,14 +151,12 @@ function addNotice(cls: string, html: string): void {
 
 // ── Client events ──────────────────────────────────────────────────────────────
 client.on('connected', () => {
-  mockWs = MockEventSubWebSocket.current
   setStatus('connected', 'Connected')
   el<HTMLButtonElement>('btn-send').disabled = false
   el<HTMLButtonElement>('btn-run').disabled = false
 })
 
 client.on('disconnected', () => {
-  mockWs = null
   setStatus('error', 'Disconnected')
   el<HTMLButtonElement>('btn-send').disabled = true
   el<HTMLButtonElement>('btn-run').disabled = true
@@ -323,17 +289,16 @@ buildParamsUI('chat')
 manualActionSel.addEventListener('change', () => buildParamsUI(manualActionSel.value as ActionType))
 
 el('btn-send').addEventListener('click', () => {
-  if (!mockWs) return
   const user = USER_POOL.find(u => u.id === manualUserSel.value)!
   const action = manualActionSel.value as ActionType
   const val = (id: string) => (document.getElementById(id) as HTMLInputElement | null)?.value ?? ''
-  const num = (id: string, fb: number) => { const v = parseInt(val(id), 10); return isNaN(v) ? fb : v }
-  executeAction(mockWs, user, action, {
-    message: val('p-message') || undefined,
-    bits:        action === 'cheer'   ? num('p-bits', 100)     : undefined,
-    months:      action === 'resub'   ? num('p-months', 6)     : undefined,
-    giftCount:   action === 'giftsub' ? num('p-giftcount', 1)  : undefined,
-    viewerCount: action === 'raid'    ? num('p-viewers', 150)  : undefined,
+  const numVal = (id: string, fb: number) => { const v = parseInt(val(id), 10); return isNaN(v) ? fb : v }
+  simulator.fire(action, user, {
+    ...(val('p-message') ? { message: val('p-message') } : {}),
+    ...(action === 'cheer'   ? { bits: numVal('p-bits', 100) }       : {}),
+    ...(action === 'resub'   ? { months: numVal('p-months', 6) }     : {}),
+    ...(action === 'giftsub' ? { giftCount: numVal('p-giftcount', 1) } : {}),
+    ...(action === 'raid'    ? { viewerCount: numVal('p-viewers', 150) } : {}),
   })
 })
 
@@ -379,7 +344,6 @@ function stopProgress(): void {
 }
 
 btnRun.addEventListener('click', () => {
-  if (!mockWs) return
   const duration = Math.max(1, parseFloat(el<HTMLInputElement>('tl-duration').value) || 10)
   const rate     = Math.max(0.1, parseFloat(el<HTMLInputElement>('tl-rate').value) || 2)
   const userMode = document.querySelector<HTMLInputElement>('input[name="tl-users"]:checked')?.value ?? 'random'
@@ -391,12 +355,11 @@ btnRun.addEventListener('click', () => {
   btnStop.disabled = false
   startProgress(duration * 1000)
 
-  scheduler.start({
-    durationSeconds: duration,
-    actionsPerSecond: rate,
+  simulator.run({
+    duration,
+    rate,
     users,
     actions,
-    onFire: (user, action) => { if (mockWs) executeAction(mockWs, user, action) },
     onComplete: () => {
       btnRun.disabled = false
       btnStop.disabled = true
@@ -406,14 +369,14 @@ btnRun.addEventListener('click', () => {
 })
 
 btnStop.addEventListener('click', () => {
-  scheduler.stop()
+  simulator.stop()
   btnRun.disabled = false
   btnStop.disabled = true
   stopProgress()
 })
 
 // ── Connect ────────────────────────────────────────────────────────────────────
-client.connect().catch(err => {
+simulator.connect().catch(err => {
   setStatus('error', 'Connection failed')
   addNotice('sim-notice-error', `Failed to connect: ${esc(String(err))}`)
 })

@@ -22,9 +22,9 @@ export const USER_POOL: SimUser[] = [
 ]
 
 export function randomUser(pool: SimUser[] = USER_POOL): SimUser {
-  return pool[Math.floor(Math.random() * pool.length)]
+  return pool[Math.floor(Math.random() * pool.length)]!
 }
 
 export function randomChoice<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]
+  return arr[Math.floor(Math.random() * arr.length)]!
 }

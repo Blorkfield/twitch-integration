@@ -11,11 +11,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      // In Docker, blork-tabs is installed from npm — skip the local sibling-repo aliases
-      ...(!isDocker && {
-        '@blorkfield/blork-tabs/styles.css': resolve(__dirname, '../../blork-tabs/dist/styles.css'),
-        '@blorkfield/blork-tabs': resolve(__dirname, '../../blork-tabs/dist/index.js'),
-      }),
       '@blorkfield/twitch-integration': resolve(__dirname, '../dist/index.js'),
     },
   },
