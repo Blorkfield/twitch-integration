@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>twitch-integration simulation</title>
+  <link rel="stylesheet" href="@blorkfield/blork-tabs/styles.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #0e0e14;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    .page-title {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px;
+      color: #555;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Shared form elements ───────────────────────────── */
+    .sim-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 4px 2px 10px;
+      border-bottom: 1px solid #2a2a3a;
+    }
+    .sim-section:last-child { border-bottom: none; padding-bottom: 2px; }
+
+    .sim-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .sim-section-subtitle {
+      font-size: 11px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .sim-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      align-items: center;
+    }
+
+    .sim-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: #aaa;
+    }
+
+    .sim-label input[type=number],
+    .sim-label input[type=text] {
+      background: #0e0e14;
+      border: 1px solid #2a2a3a;
+      border-radius: 4px;
+      color: #e0e0e0;
+      padding: 4px 7px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      width: 68px;
+    }
+    .sim-label input[type=number]:focus,
+    .sim-label input[type=text]:focus { border-color: #4a90d9; }
+
+    .sim-label input[type=radio] { accent-color: #9147ff; cursor: pointer; }
+    .sim-label input[type=checkbox] { accent-color: #9147ff; cursor: pointer; }
+
+    .sim-radio-label {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      color: #aaa;
+      cursor: pointer;
+    }
+
+    /* ── User grid ──────────────────────────────────────── */
+    .sim-user-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 10px;
+    }
+
+    .sim-user-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      padding: 2px 0;
+    }
+
+    .sim-user-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .sim-user-name { font-size: 13px; color: #e0e0e0; }
+
+    /* ── Action chips ────────────────────────────────────── */
+    .sim-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .sim-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: #0e0e14;
+      border: 1px solid #2a2a3a;
+      border-radius: 20px;
+      padding: 3px 9px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 11.5px;
+      color: #888;
+      transition: border-color 0.12s, color 0.12s, background 0.12s;
+    }
+    .sim-chip.selected {
+      border-color: #9147ff;
+      color: #c8a0ff;
+      background: #1a0e2e;
+    }
+    .sim-chip input { display: none; }
+
+    /* ── Buttons ─────────────────────────────────────────── */
+    .btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      transition: opacity 0.15s, background 0.15s;
+    }
+    .btn:disabled { opacity: 0.35; cursor: default; }
+
+    .btn-primary { background: #4a90d9; color: #fff; }
+    .btn-primary:not(:disabled):hover { background: #5aa0e9; }
+
+    .btn-run { background: #27ae60; color: #fff; }
+    .btn-run:not(:disabled):hover { background: #2ecc71; }
+
+    .btn-stop { background: #2a1a1a; color: #e07070; border: 1px solid #4a2a2a; }
+    .btn-stop:not(:disabled):hover { background: #3d1515; }
+
+    .btn-ghost { background: #1a1a2a; color: #aaa; border: 1px solid #2a2a3a; }
+    .btn-ghost:not(:disabled):hover { background: #2a2a3a; color: #e0e0e0; }
+
+    /* ── Manual action params ────────────────────────────── */
+    .sim-params {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .sim-param-field { display: flex; flex-direction: column; gap: 3px; }
+
+    .sim-param-label {
+      font-size: 10px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    input.sim-param-input {
+      background: #0e0e14;
+      border: 1px solid #2a2a3a;
+      border-radius: 4px;
+      color: #e0e0e0;
+      padding: 5px 8px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+      width: 100%;
+    }
+    input.sim-param-input[type=number] { width: 90px; }
+    input.sim-param-input:focus { border-color: #4a90d9; }
+
+    /* ── Progress ────────────────────────────────────────── */
+    .sim-progress-wrap {
+      height: 3px;
+      background: #2a2a3a;
+      border-radius: 2px;
+      overflow: hidden;
+      display: none;
+    }
+    .sim-progress-wrap.visible { display: block; }
+    .sim-progress-bar {
+      height: 100%;
+      background: #9147ff;
+      width: 0%;
+      transition: width 0.2s linear;
+    }
+
+    /* ── Status row ──────────────────────────────────────── */
+    .sim-status-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: #666;
+    }
+
+    .sim-status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #444;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .sim-status-dot.connected  { background: #27ae60; box-shadow: 0 0 6px #27ae60; }
+    .sim-status-dot.connecting { background: #f39c12; box-shadow: 0 0 6px #f39c12; }
+    .sim-status-dot.error      { background: #c0392b; box-shadow: 0 0 6px #c0392b; }
+
+    /* ── Chat panel ──────────────────────────────────────── */
+    .sim-chat-log {
+      height: 520px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      padding: 4px 2px;
+    }
+
+    .sim-chat-log::-webkit-scrollbar { width: 5px; }
+    .sim-chat-log::-webkit-scrollbar-track { background: transparent; }
+    .sim-chat-log::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
+
+    .sim-chat-msg {
+      font-size: 13px;
+      line-height: 1.55;
+      word-break: break-word;
+      padding: 1px 0;
+    }
+
+    .sim-chat-username { font-weight: 700; }
+    .sim-chat-colon { color: #555; margin: 0 1px; }
+    .sim-chat-text { color: #e0e0e0; }
+
+    .sim-chat-empty {
+      color: #3a3a4a;
+      font-size: 12px;
+      text-align: center;
+      padding: 20px 0;
+    }
+
+    .sim-notice {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 3px;
+      margin: 2px 0;
+      line-height: 1.4;
+    }
+    .sim-notice-follow { background: #0a1f0a; color: #44bb44; border-left: 2px solid #44bb44; }
+    .sim-notice-sub    { background: #100a28; color: #9d6fff; border-left: 2px solid #9147ff; }
+    .sim-notice-cheer  { background: #1e1500; color: #e5b800; border-left: 2px solid #e5b800; }
+    .sim-notice-raid   { background: #1c0820; color: #cc44cc; border-left: 2px solid #cc44cc; }
+    .sim-notice-error  { background: #1e0808; color: #ff6060; border-left: 2px solid #ff4444; }
+
+    /* Allow controls panel content to grow without clipping */
+    .blork-tabs-panel:has(#btn-run) .blork-tabs-content {
+      max-height: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-title">twitch-integration — simulation</div>
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

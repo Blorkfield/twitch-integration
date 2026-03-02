@@ -27,11 +27,13 @@
     "dist"
   ],
   "scripts": {
-    "dev": "pnpm build && pnpm -C testbed dev",
+    "dev": "pnpm build && node scripts/dev.js",
+    "dev:connect": "pnpm build && pnpm -C testbed dev",
+    "dev:simulation": "pnpm build && pnpm -C testbed-sim dev",
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "changeset": "changeset",
-    "prepare": "[ -d testbed ] && pnpm -C testbed install || true"
+    "prepare": "[ -d testbed ] && pnpm -C testbed install || true; [ -d testbed-sim ] && pnpm -C testbed-sim install || true"
   },
   "dependencies": {
     "eventemitter3": "^5.0.1"

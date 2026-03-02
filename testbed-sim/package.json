@@ -1,0 +1,15 @@
+{
+  "name": "twitch-integration-testbed-sim",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build"
+  },
+  "devDependencies": {
+    "@blorkfield/blork-tabs": "^0.3.0",
+    "@blorkfield/twitch-integration": "file:../",
+    "typescript": "^5.4.0",
+    "vite": "^5.0.0"
+  }
+}
