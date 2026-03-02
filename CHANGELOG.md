@@ -1,5 +1,11 @@
 # @blorkfield/twitch-integration
 
+## 0.5.0
+
+### Minor Changes
+
+- e566880: feat: simulation
+
 ## 0.4.0
 
 ### Minor Changes
