@@ -13,19 +13,20 @@ RUN pnpm install --frozen-lockfile || pnpm install
 # Copy source
 COPY tsconfig.json tsup.config.ts ./
 COPY src ./src
+COPY scripts ./scripts
 
-# Install testbed dependencies separately
-COPY testbed/package.json ./testbed/
-WORKDIR /app/testbed
+# Install testbed-sim dependencies separately
+COPY testbed-sim/package.json ./testbed-sim/
+WORKDIR /app/testbed-sim
 RUN pnpm install --frozen-lockfile || pnpm install
 
 WORKDIR /app
 
-COPY testbed ./testbed
+COPY testbed-sim ./testbed-sim
 
 ENV DOCKER=1
 
-EXPOSE 5175
+EXPOSE 5176
 
-# pnpm dev = pnpm build (tsup) then pnpm -C testbed dev (vite)
+# pnpm dev = pnpm build (tsup) then pnpm -C testbed-sim dev (vite)
 CMD ["pnpm", "dev"]

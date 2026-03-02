@@ -748,6 +748,43 @@ const badge: ResolvedBadge | undefined = client.resolveBadge('subscriber', '6')
 
 ---
 
+## Development
+
+Two browser testbeds are included.
+
+### Simulation testbed (default)
+
+No credentials needed. Intercepts the WebSocket and Helix API in-browser and drives the full `TwitchClient` pipeline with fake events.
+
+```bash
+pnpm dev               # build + open simulation testbed on http://localhost:5176
+pnpm dev simulation    # same
+```
+
+Two panels (Controls + Chat Simulation):
+
+- **Controls** — select users, configure a timed run (duration, rate, action types, random or specific users), or manually fire individual events
+- **Chat Simulation** — scrolling chat log showing the normalized events as they flow through the client
+
+### Connect testbed
+
+Connects to a real Twitch channel using your own credentials.
+
+```bash
+pnpm dev connect       # build + open connect testbed on http://localhost:5175
+```
+
+### Docker
+
+The Docker image serves the simulation testbed on port 5176.
+
+```bash
+docker compose up --build
+# → http://localhost:5176
+```
+
+---
+
 ## Build
 
 ```bash
