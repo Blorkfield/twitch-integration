@@ -1,5 +1,11 @@
 # @blorkfield/twitch-integration
 
+## 0.5.1
+
+### Patch Changes
+
+- fbde5f5: refactor: simulation
+
 ## 0.5.0
 
 ### Minor Changes
