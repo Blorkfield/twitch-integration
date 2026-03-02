@@ -4,5 +4,5 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "5176:5176"
+      - "5175:5175"
     restart: unless-stopped

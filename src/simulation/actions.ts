@@ -1,4 +1,5 @@
-import type { MockEventSubWebSocket } from '../mock/websocket.js'
+import type { MockEventSubWebSocket } from './mock-websocket.js'
+import type { ChannelContext } from './event-builders.js'
 import {
   chatMessageEvent,
   followEvent,
@@ -7,7 +8,7 @@ import {
   giftSubEvent,
   cheerEvent,
   raidEvent,
-} from '../mock/events.js'
+} from './event-builders.js'
 import type { SimUser } from './users.js'
 import { randomChoice } from './users.js'
 
@@ -58,31 +59,33 @@ export function executeAction(
   ws: MockEventSubWebSocket,
   user: SimUser,
   action: ActionType,
+  channel: ChannelContext,
   params: ActionParams = {},
 ): void {
-  const { subscription_type, event } = buildEvent(user, action, params)
+  const { subscription_type, event } = buildEvent(user, action, channel, params)
   ws.sendNotification(subscription_type, event)
 }
 
-function buildEvent(user: SimUser, action: ActionType, params: ActionParams) {
+function buildEvent(user: SimUser, action: ActionType, channel: ChannelContext, params: ActionParams) {
   switch (action) {
     case 'chat':
-      return chatMessageEvent(user, params.message ?? randomChoice(CHAT_MESSAGES))
+      return chatMessageEvent(user, params.message ?? randomChoice(CHAT_MESSAGES), channel)
     case 'follow':
-      return followEvent(user)
+      return followEvent(user, channel)
     case 'subscribe':
-      return subscribeEvent(user)
+      return subscribeEvent(user, channel)
     case 'resub':
       return resubEvent(
         user,
+        channel,
         params.months ?? Math.floor(Math.random() * 24) + 1,
         params.message,
       )
     case 'giftsub':
-      return giftSubEvent(user, params.giftCount ?? Math.floor(Math.random() * 5) + 1)
+      return giftSubEvent(user, channel, params.giftCount ?? Math.floor(Math.random() * 5) + 1)
     case 'cheer':
-      return cheerEvent(user, params.bits ?? 100, params.message)
+      return cheerEvent(user, channel, params.bits ?? 100, params.message)
     case 'raid':
-      return raidEvent(user, params.viewerCount ?? Math.floor(Math.random() * 500) + 10)
+      return raidEvent(user, channel, params.viewerCount ?? Math.floor(Math.random() * 500) + 10)
   }
 }

@@ -11,10 +11,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      ...(!isDocker && {
-        '@blorkfield/blork-tabs/styles.css': resolve(__dirname, '../../blork-tabs/dist/styles.css'),
-        '@blorkfield/blork-tabs': resolve(__dirname, '../../blork-tabs/dist/index.js'),
-      }),
+      '@blorkfield/twitch-integration/simulation': resolve(__dirname, '../dist/simulation/index.js'),
       '@blorkfield/twitch-integration': resolve(__dirname, '../dist/index.js'),
     },
   },

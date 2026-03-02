@@ -21,6 +21,16 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./simulation": {
+      "import": {
+        "types": "./dist/simulation/index.d.ts",
+        "default": "./dist/simulation/index.js"
+      },
+      "require": {
+        "types": "./dist/simulation/index.d.cts",
+        "default": "./dist/simulation/index.cjs"
+      }
     }
   },
   "files": [
