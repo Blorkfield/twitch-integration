@@ -1,5 +1,11 @@
 # @blorkfield/twitch-integration
 
+## 0.6.0
+
+### Minor Changes
+
+- 5b31d2f: feat: fake pfp
+
 ## 0.5.1
 
 ### Patch Changes
