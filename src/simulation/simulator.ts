@@ -7,6 +7,7 @@ import type { SchedulerOptions } from './scheduler.js'
 import { USER_POOL, randomUser } from './users.js'
 import type { SimUser } from './users.js'
 import type { ChannelContext } from './event-builders.js'
+import { avatarDataUri } from './avatars.js'
 
 export interface SimulationOptions {
   /** Simulated channel ID. Default: `'mock_channel'` */
@@ -49,7 +50,10 @@ export class TwitchSimulator {
       login: options.channelLogin ?? 'mock_streamer',
       name: options.channelName ?? 'MockStreamer',
     }
-    this.users = options.users ?? USER_POOL
+    const rawUsers = options.users ?? USER_POOL
+    this.users = rawUsers.map((u, i) =>
+      u.profileImageUrl ? u : { ...u, profileImageUrl: avatarDataUri(u.color, i) },
+    )
 
     const mockFetch = createMockFetch(this.users)
 
