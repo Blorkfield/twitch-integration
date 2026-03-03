@@ -1,5 +1,11 @@
 # @blorkfield/twitch-integration
 
+## 0.6.1
+
+### Patch Changes
+
+- 83a1676: fix: pfp cors
+
 ## 0.6.0
 
 ### Minor Changes
