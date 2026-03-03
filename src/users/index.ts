@@ -18,11 +18,14 @@ interface CacheEntry {
 const HELIX_USERS = 'https://api.twitch.tv/helix/users'
 const TTL_MS = 5 * 60 * 1_000
 
+type FetchFn = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
+
 export class UserCache {
   private cache = new Map<string, CacheEntry>()
 
   constructor(
     private readonly getCredentials: () => { accessToken: string; clientId: string },
+    private readonly fetchFn: FetchFn = fetch,
   ) {}
 
   async getUser(userId: string): Promise<UserInfo | null> {
@@ -75,7 +78,7 @@ export class UserCache {
     for (const id of ids) params.append('id', id)
 
     const { accessToken, clientId } = this.getCredentials()
-    const res = await fetch(`${HELIX_USERS}?${params.toString()}`, {
+    const res = await this.fetchFn(`${HELIX_USERS}?${params.toString()}`, {
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Client-Id': clientId,

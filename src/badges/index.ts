@@ -16,6 +16,8 @@ interface HelixBadgeSet {
 const HELIX_BADGES_GLOBAL = 'https://api.twitch.tv/helix/chat/badges/global'
 const HELIX_BADGES_CHANNEL = 'https://api.twitch.tv/helix/chat/badges'
 
+type FetchFn = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
+
 export class BadgeCache {
   // setId → version → ResolvedBadge
   private sets = new Map<string, Map<string, ResolvedBadge>>()
@@ -23,6 +25,7 @@ export class BadgeCache {
   constructor(
     private readonly channelId: string,
     private readonly getCredentials: () => { accessToken: string; clientId: string },
+    private readonly fetchFn: FetchFn = fetch,
   ) {}
 
   async load(): Promise<void> {
@@ -33,8 +36,8 @@ export class BadgeCache {
     }
 
     const [globalRes, channelRes] = await Promise.all([
-      fetch(HELIX_BADGES_GLOBAL, { headers }),
-      fetch(`${HELIX_BADGES_CHANNEL}?broadcaster_id=${this.channelId}`, { headers }),
+      this.fetchFn(HELIX_BADGES_GLOBAL, { headers }),
+      this.fetchFn(`${HELIX_BADGES_CHANNEL}?broadcaster_id=${this.channelId}`, { headers }),
     ])
 
     if (!globalRes.ok) throw new Error(`Global badges fetch failed: ${globalRes.status}`)

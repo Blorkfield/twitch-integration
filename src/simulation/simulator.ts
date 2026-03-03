@@ -1,5 +1,5 @@
 import { TwitchClient } from '../client.js'
-import { MockEventSubWebSocket, installMockWebSocket, installMockFetch } from './mock-websocket.js'
+import { MockEventSubWebSocket, createMockFetch } from './mock-websocket.js'
 import { executeAction } from './actions.js'
 import type { ActionType, ActionParams } from './actions.js'
 import { Scheduler } from './scheduler.js'
@@ -51,8 +51,7 @@ export class TwitchSimulator {
     }
     this.users = options.users ?? USER_POOL
 
-    installMockWebSocket()
-    installMockFetch()
+    const mockFetch = createMockFetch(this.users)
 
     this.client = new TwitchClient({
       channelId: this.channel.id,
@@ -73,6 +72,10 @@ export class TwitchSimulator {
         channelPoints: true,
         adBreak: true,
         shoutouts: true,
+      },
+      transport: {
+        fetch: mockFetch,
+        WebSocket: MockEventSubWebSocket,
       },
     })
   }

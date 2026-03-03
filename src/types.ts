@@ -39,6 +39,14 @@ export interface TwitchClientOptions {
   /** Which EventSub subscriptions to register on connect. All omitted/false = nothing subscribed. */
   subscriptions?: TwitchClientSubscriptions
   onTokenRefresh?: (newToken: string) => void
+  /**
+   * Injectable transport — lets you swap the WebSocket and fetch implementations without
+   * touching globals. Used internally by TwitchSimulator; not needed for normal usage.
+   */
+  transport?: {
+    fetch?: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
+    WebSocket?: new (url: string) => unknown
+  }
 }
 
 /** @deprecated Use TwitchClientOptions */

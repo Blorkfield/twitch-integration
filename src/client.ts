@@ -102,7 +102,7 @@ interface WSLike {
   addEventListener(type: 'error', listener: (event: unknown) => void): void
 }
 
-function createWebSocket(url: string): WSLike {
+function defaultWebSocket(url: string): WSLike {
   if (typeof WebSocket !== 'undefined') {
     return new WebSocket(url) as unknown as WSLike
   }
@@ -158,6 +158,8 @@ export class TwitchClient extends EventEmitter<TwitchClientEvents> {
   private emoteCache: EmoteCache
   private userCache: UserCache
   private badgeCache: BadgeCache
+  private readonly _fetch: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>
+  private readonly _createWebSocket: (url: string) => WSLike
 
   private ws: WSLike | null = null
   private sessionId: string | null = null
@@ -172,15 +174,20 @@ export class TwitchClient extends EventEmitter<TwitchClientEvents> {
   constructor(options: TwitchClientOptions) {
     super()
     this.options = options
+    this._fetch = options.transport?.fetch ?? fetch
+    this._createWebSocket = options.transport?.WebSocket
+      ? (url) => new (options.transport!.WebSocket!)(url) as unknown as WSLike
+      : defaultWebSocket
     this.emoteCache = new EmoteCache(options.channelId)
-    this.userCache = new UserCache(() => ({
-      accessToken: this.options.accessToken,
-      clientId: this.options.clientId,
-    }))
-    this.badgeCache = new BadgeCache(options.channelId, () => ({
-      accessToken: this.options.accessToken,
-      clientId: this.options.clientId,
-    }))
+    this.userCache = new UserCache(
+      () => ({ accessToken: this.options.accessToken, clientId: this.options.clientId }),
+      this._fetch,
+    )
+    this.badgeCache = new BadgeCache(
+      options.channelId,
+      () => ({ accessToken: this.options.accessToken, clientId: this.options.clientId }),
+      this._fetch,
+    )
   }
 
   // ---------------------------------------------------------------------------
@@ -243,7 +250,7 @@ export class TwitchClient extends EventEmitter<TwitchClientEvents> {
 
   private _openConnection(url: string, isReconnect: boolean): Promise<void> {
     return new Promise((resolve, reject) => {
-      const ws = createWebSocket(url)
+      const ws = this._createWebSocket(url)
       let settled = false
 
       const settle = (fn: () => void) => {
@@ -546,7 +553,7 @@ export class TwitchClient extends EventEmitter<TwitchClientEvents> {
     version: string,
     condition: Record<string, string>,
   ): Promise<void> {
-    const res = await fetch(HELIX_SUBSCRIPTIONS, {
+    const res = await this._fetch(HELIX_SUBSCRIPTIONS, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${this.options.accessToken}`,
