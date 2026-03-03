@@ -256,12 +256,23 @@
     .sim-chat-log::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 3px; }
 
     .sim-chat-msg {
+      display: flex;
+      align-items: center;
+      gap: 5px;
       font-size: 13px;
       line-height: 1.55;
-      word-break: break-word;
       padding: 1px 0;
     }
 
+    .sim-chat-avatar {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      object-fit: cover;
+    }
+
+    .sim-chat-content { word-break: break-word; min-width: 0; }
     .sim-chat-username { font-weight: 700; }
     .sim-chat-colon { color: #555; margin: 0 1px; }
     .sim-chat-text { color: #e0e0e0; }

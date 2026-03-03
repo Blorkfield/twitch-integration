@@ -1,3 +1,5 @@
+import type { SimUser } from './users.js'
+
 type Listener = (event: unknown) => void
 
 export class MockEventSubWebSocket {
@@ -100,21 +102,46 @@ export class MockEventSubWebSocket {
   }
 }
 
-export function installMockWebSocket(): void {
-  ;(globalThis as Record<string, unknown>).WebSocket = MockEventSubWebSocket
-}
+/**
+ * Returns a fetch implementation for use with TwitchClient's transport option.
+ * Handles Twitch Helix API calls during simulation — no globals are touched.
+ */
+export function createMockFetch(
+  users: SimUser[],
+): (input: RequestInfo | URL, init?: RequestInit) => Promise<Response> {
+  const userMap = new Map(users.map(u => [u.id, u]))
 
-export function installMockFetch(): void {
-  const originalFetch = globalThis.fetch
-  globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  return async (input: RequestInfo | URL, init?: RequestInit) => {
     const url =
       typeof input === 'string' ? input : input instanceof URL ? input.href : (input as Request).url
+
+    if (url.includes('api.twitch.tv/helix/users')) {
+      const ids = new URL(url).searchParams.getAll('id')
+      const data = ids
+        .map(id => userMap.get(id))
+        .filter((u): u is SimUser => u !== undefined)
+        .map(u => ({
+          id: u.id,
+          login: u.login,
+          display_name: u.displayName,
+          profile_image_url: u.profileImageUrl ?? '',
+          broadcaster_type: '',
+          description: '',
+          created_at: new Date(0).toISOString(),
+        }))
+      return new Response(JSON.stringify({ data }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
     if (url.includes('api.twitch.tv/helix')) {
       return new Response(
         JSON.stringify({ data: [], total: 0, max_total_cost: 10, total_cost: 1, pagination: {} }),
         { status: 202, headers: { 'Content-Type': 'application/json' } },
       )
     }
-    return originalFetch(input, init)
+
+    return fetch(input, init)
   }
 }

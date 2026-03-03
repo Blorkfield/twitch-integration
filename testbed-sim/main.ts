@@ -7,6 +7,9 @@ import type { ActionType, SimUser } from '@blorkfield/twitch-integration/simulat
 const simulator = new TwitchSimulator()
 const client = simulator.client
 
+// ── Profile picture cache (populated on connect) ────────────────────────────
+let pfpMap = new Map<string, string>()
+
 // ── Tab manager ────────────────────────────────────────────────────────────────
 const manager = new TabManager({
   snapThreshold: 40,
@@ -132,13 +135,23 @@ function esc(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 }
 
-function addChatMsg(user: { displayName: string; color: string }, text: string): void {
+function addChatMsg(userId: string, user: { displayName: string; color: string }, text: string): void {
   const div = document.createElement('div')
   div.className = 'sim-chat-msg'
-  div.innerHTML =
+  const pfp = pfpMap.get(userId)
+  if (pfp) {
+    const img = document.createElement('img')
+    img.src = pfp
+    img.className = 'sim-chat-avatar'
+    div.appendChild(img)
+  }
+  const content = document.createElement('span')
+  content.className = 'sim-chat-content'
+  content.innerHTML =
     `<span class="sim-chat-username" style="color:${user.color}">${esc(user.displayName)}</span>` +
     `<span class="sim-chat-colon">:</span>` +
     `<span class="sim-chat-text"> ${esc(text)}</span>`
+  div.appendChild(content)
   addEntry(div)
 }
 
@@ -154,6 +167,9 @@ client.on('connected', () => {
   setStatus('connected', 'Connected')
   el<HTMLButtonElement>('btn-send').disabled = false
   el<HTMLButtonElement>('btn-run').disabled = false
+  client.getProfilePictureUrls(USER_POOL.map(u => u.id))
+    .then(urls => { pfpMap = urls })
+    .catch(() => {})
 })
 
 client.on('disconnected', () => {
@@ -167,7 +183,7 @@ client.on('error', err => {
 })
 
 client.on('message', msg => {
-  addChatMsg({ displayName: msg.user.displayName, color: msg.user.color }, msg.text)
+  addChatMsg(msg.user.id, { displayName: msg.user.displayName, color: msg.user.color }, msg.text)
 })
 
 client.on('follow', e => {

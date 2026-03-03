@@ -300,6 +300,8 @@ client.disconnect()
 
 `TwitchSimulator` lets you drive the full `TwitchClient` pipeline without credentials — no Twitch account, no WebSocket connection, no Helix API calls. Useful for UI development, automated tests, demos, and CI.
 
+The simulator works by passing mock `WebSocket` and `fetch` implementations directly into `TwitchClient` via its `transport` option. No globals are patched — your app's real `fetch` and `WebSocket` are untouched, so other libraries in the same page or process are completely unaffected.
+
 ```bash
 pnpm add @blorkfield/twitch-integration
 ```
@@ -848,27 +850,27 @@ const badge: ResolvedBadge | undefined = client.resolveBadge('subscriber', '6')
 
 Two browser testbeds are included.
 
-### Simulation testbed (default)
+### Connect testbed (default)
+
+Connects to a real Twitch channel using your own credentials.
+
+```bash
+pnpm dev               # build + open connect testbed on http://localhost:5175
+pnpm dev connect       # same
+```
+
+### Simulation testbed
 
 No credentials needed. Uses the package's own `TwitchSimulator` API to drive the full `TwitchClient` pipeline with fake events.
 
 ```bash
-pnpm dev               # build + open simulation testbed on http://localhost:5176
-pnpm dev simulation    # same
+pnpm dev simulation    # build + open simulation testbed on http://localhost:5176
 ```
 
 Two panels (Controls + Chat Simulation):
 
 - **Controls** — select users, configure a timed run (duration, rate, action types, random or specific users), or manually fire individual events
 - **Chat Simulation** — scrolling chat log showing the normalized events as they flow through the client
-
-### Connect testbed
-
-Connects to a real Twitch channel using your own credentials.
-
-```bash
-pnpm dev connect       # build + open connect testbed on http://localhost:5175
-```
 
 ### Docker
 
